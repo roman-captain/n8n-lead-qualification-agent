@@ -1,0 +1,40 @@
+services:
+  n8n:
+    container_name: n8n
+    image: n8nio/n8n:2.26.3
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - TZ=${TIMEZONE}
+      - GENERIC_TIMEZONE=${TIMEZONE}
+      - WEBHOOK_URL=${URL}
+      # localhost:5678 stays available for quick local work, and that
+      # path has no https, so the secure cookie exception stays too.
+      - N8N_SECURE_COOKIE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - n8n-network
+
+  ngrok:
+    container_name: ngrok
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_TOKEN}
+    command:
+      - start
+      - --all
+      - --config
+      - /etc/ngrok.yml
+    networks:
+      - n8n-network
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n-network:

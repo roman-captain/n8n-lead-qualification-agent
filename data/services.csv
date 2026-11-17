@@ -1,0 +1,5 @@
+service_id,name,description,min_budget_eur,typical_timeline
+S01,Chatbot automation,Telegram and WhatsApp assistants for customer requests,1500,3-5 weeks
+S02,CRM integration,Connecting a CRM with email and spreadsheets,2000,4-6 weeks
+S03,Document processing,Extracting data from invoices and contracts,2500,6-8 weeks
+S04,Reporting automation,Scheduled reports and dashboards,1000,2-3 weeks

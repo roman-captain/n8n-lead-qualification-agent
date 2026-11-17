@@ -1,0 +1,7 @@
+version: 2
+log_level: info
+tunnels:
+  n8n:
+    proto: http
+    addr: n8n:5678
+    domain: YOUR_NGROK_DOMAIN

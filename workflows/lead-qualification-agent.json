@@ -1,0 +1,489 @@
+{
+  "name": "Lead qualification agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "27367aa5-2cbe-4034-8aed-8dea91dcf897",
+      "name": "When chat message received",
+      "webhookId": "9ea9c2b7-e0d0-41e4-a4a6-97b44be4e505"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the lead intake assistant for a small automation agency.\nYour job is to understand a client's request, collect what is missing,\nclassify the lead, and record it.\n\nDATA\nUse the tools to read the agency data. Never rely on your own knowledge\nabout the agency, its services, prices or rules.\n- Read `services` to decide whether a request matches something the agency sells.\n- Read `qualification_rules` to classify a lead.\n\nFIELDS TO COLLECT\nservice_requested, company_type, budget_eur, timeframe, contact.\n\nRULES\n1. Never invent a budget, timeframe, company fact or contact detail.\n   If the client did not state it, leave it empty.\n2. If a value is approximate or vague, record it and describe the doubt\n   in the `uncertainty` field. Example: \"budget stated as approximate\".\n3. If the contact is missing, the requested service cannot be identified,\n   or the budget is not stated, the lead is `incomplete`. Ask exactly one\n   follow-up question and do not save it.\n4. When contact and service are known, classify the lead using\n   `qualification_rules` and save it with the save tool.\n5. If the request is outside the agency's services, classify it `cold`,\n   save it, and tell the client honestly that this is not something\n   the agency does.\n6. If the client gives conflicting information, do not choose one value\n   silently. Ask which one is correct.\n7. Answer only about the agency, its services and the client's request.\n   For anything else, say that you can only help with automation enquiries.\n8. Never tell the client their request was saved unless the save tool\n   actually returned success. If a tool call fails, say there was a\n   technical problem and that you will follow up, do not pretend it worked.\n\nSTYLE\nReply in English. Be short and concrete. Ask at most one question per message."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2cc507ac-acb3-4711-b5a4-3246200f07d4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.6-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "5988e96e-a87d-44a0-87fd-1be254f7173a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "5dI6Vw5Uds0Vy7Zg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionKey": "",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        208
+      ],
+      "id": "af789c0d-0ef5-46a9-98e8-d0bab20772f1",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Saves a qualified lead into the CRM sheet. Call this only after the contact and the requested service are known. Do not call it for incomplete leads.\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "8JissefvkPj8nAgi",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8JissefvkPj8nAgi",
+          "cachedResultName": "Tool - Save lead"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contact": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('contact', `Email address or phone number only. Do not include the person's name or any other text.`, 'string') }}",
+            "company_type": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('company_type', ``, 'string') }}",
+            "service_requested": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('service_requested', `Service code from the services list, for example S01. Use the exact code, not the service name. Leave empty if no service matches.`, 'string') }}",
+            "budget_eur": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('budget_eur', `Budget in euros as the client stated it. Keep the original wording if it is approximate, for example \"around 2000\". Leave empty if not mentioned.`, 'string') }}",
+            "timeframe": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('timeframe', ``, 'string') }}",
+            "raw_request": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('raw_request', ``, 'string') }}",
+            "uncertainty": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('uncertainty', `Short note about anything unclear or contradictory in the request. Leave empty if everything is clear.`, 'string') }}",
+            "next_action": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('next_action', ``, 'string') }}",
+            "qualification": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('qualification', `One of: hot, warm, cold. Never invent other values.`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "contact",
+              "displayName": "contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "company_type",
+              "displayName": "company_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "service_requested",
+              "displayName": "service_requested",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "budget_eur",
+              "displayName": "budget_eur",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "timeframe",
+              "displayName": "timeframe",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qualification",
+              "displayName": "qualification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "next_action",
+              "displayName": "next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "uncertainty",
+              "displayName": "uncertainty",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "raw_request",
+              "displayName": "raw_request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        304
+      ],
+      "id": "e8d3a97f-6e30-41ef-9cf3-99e6f58ae2f3",
+      "name": "save_lead"
+    },
+    {
+      "parameters": {
+        "description": "Returns the qualification rules. Each row describes a lead category and the condition for it. Call this before assigning a qualification to a lead.\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "a8YbfaivgyaYATfj",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/a8YbfaivgyaYATfj",
+          "cachedResultName": "Tool - Read rules"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        400
+      ],
+      "id": "e714edea-48f4-4c16-ad59-f6e75d07bc9b",
+      "name": "read_rules"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        336,
+        336
+      ],
+      "id": "10b24473-20e5-497f-b7bb-bcb0ccbed3dc",
+      "name": "Telegram Trigger",
+      "webhookId": "702bbf74-d379-4823-8384-d3b4106066fb",
+      "credentials": {
+        "telegramApi": {
+          "id": "UlMlKFwgL88TBF8z",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "74bac549-e8a7-4e6f-9315-79410f96a490",
+      "name": "Send a text message",
+      "webhookId": "9292f58f-ed86-427f-ba24-f58a6d7d7ef5",
+      "credentials": {
+        "telegramApi": {
+          "id": "UlMlKFwgL88TBF8z",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "54897910-dc3c-4a02-b2dc-0c07c1de15d5",
+              "leftValue": "={{ $(\"Telegram Trigger\").isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        -176
+      ],
+      "id": "7c853589-6f8c-4b04-a4b4-2f2bade6d9a9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ea1b529e-1062-4315-b737-3d4b1359eb15",
+              "name": "sessionId",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "bd16feb4-d969-437e-bfb5-b24e7ce53326",
+              "name": "chatInput",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        544
+      ],
+      "id": "898a45ed-85e1-4a9a-ac69-36b9ae8f4a71",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "description": "Returns the list of services the agency offers. Each row has a service code and a service name. Call this before deciding whether the service the client asks for is supported.\n\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "OYaWH8CyacwDwQSG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OYaWH8CyacwDwQSG",
+          "cachedResultName": "Tool - Read service"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        224
+      ],
+      "id": "ded1391a-18f4-42cf-a7a6-fbdd38f9c7d4",
+      "name": "read_services"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save_lead": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read_rules": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read_services": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1c2cafb7-edef-4d22-990b-2a3bcc371f95",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "15cf8245abc4271ed88971b598a58d70df1dc538114789b317349711e811c3d2"
+  },
+  "nodeGroups": [],
+  "id": "4a8BRicaV5Zd5csO",
+  "tags": []
+}

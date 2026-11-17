@@ -1,0 +1,5 @@
+rule_id,qualification,condition,save_lead,next_action
+R1,incomplete,Contact is missing OR the requested service cannot be identified OR budget is not stated,no,Ask one follow-up question and do not save the lead
+R2,cold,Requested service is not in the services list OR budget is below 1000 EUR,yes,Send a polite decline with a referral note
+R3,warm,Requested service is in the services list AND budget is between 1000 and 2499 EUR,yes,Send portfolio and a short proposal by email
+R4,hot,Requested service is in the services list AND budget is 2500 EUR or above,yes,Contact within one business day

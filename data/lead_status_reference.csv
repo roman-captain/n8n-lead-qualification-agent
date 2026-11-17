@@ -1,0 +1,5 @@
+status,meaning,next_action,owner
+new,Lead saved and not yet reviewed by a human,Review within one business day,Sales
+contacted,A first reply has been sent to the lead,Wait for the answer up to 5 days,Sales
+declined,Lead does not match the agency services or budget,No further action,Sales
+on_hold,Lead is valid but postponed by the client,Follow up in 30 days,Sales
